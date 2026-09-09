@@ -13,6 +13,12 @@
 <br>
 
 <p align="center">
+  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBishh-ui%2FGithub_analyzer&env=GITHUB_TOKEN,SECRET_KEY&project-name=github-analytics-pro">
+    <img src="https://vercel.com/button" alt="Deploy with Vercel">
+  </a>
+</p>
+
+<p align="center">
   <img src="img/Screenshot.png" alt="GitHub Analytics Pro Dashboard" width="92%" style="border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.35);">
 </p>
 
@@ -81,6 +87,8 @@
 
 ```
 Git_Hub_analy/
+├── api/                        # Vercel serverless entry point
+│   └── index.py                # Serverless WSGI wrapper for Vercel
 ├── app/                        # Core Flask application package
 │   ├── __init__.py             # Application factory & extension registration
 │   ├── config/                 # Environment & app configuration
@@ -102,7 +110,7 @@ Git_Hub_analy/
 │       ├── docs.html           # Interactive API documentation
 │       └── about.html          # Platform overview & metrics breakdown
 ├── docs/                       # Project guides & technical documentation
-│   ├── DEPLOYMENT.md           # Production deployment (Render, Heroku, AWS)
+│   ├── DEPLOYMENT.md           # Production deployment (Vercel, Render, Heroku)
 │   ├── FEATURES.md             # In-depth breakdown of 150+ metrics
 │   ├── LOCAL_SETUP.md          # Local machine step-by-step setup
 │   ├── QUICK_START.md          # Fast onboarding guide
@@ -129,7 +137,8 @@ Git_Hub_analy/
 ├── requirements.txt            # Python dependencies
 ├── run.py                      # Application entry point (`python run.py`)
 ├── runtime.txt                 # Python runtime version
-└── start.bat                   # Windows 1-click start script
+├── start.bat                   # Windows 1-click start script
+└── vercel.json                 # Vercel serverless deployment config
 ```
 
 ---

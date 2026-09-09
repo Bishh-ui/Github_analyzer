@@ -3,9 +3,11 @@
 This guide covers deploying GitHub Analytics Pro to various platforms.
 
 ## Table of Contents
+- [Vercel (Serverless)](#vercel-serverless)
 - [Local Development](#local-development)
 - [Production Preparation](#production-preparation)
 - [Deployment Platforms](#deployment-platforms)
+  - [Vercel](#vercel-serverless)
   - [Heroku](#heroku)
   - [Railway](#railway)
   - [PythonAnywhere](#pythonanywhere)
@@ -105,6 +107,37 @@ psycopg2-binary==2.9.9
 ---
 
 ## Deployment Platforms
+
+### Vercel (Serverless)
+
+GitHub Analytics Pro is pre-configured for Vercel using `@vercel/python` serverless functions.
+
+#### Pre-configured Files
+- **`vercel.json`**: Configures serverless rewrites to route requests through `api/index.py`.
+- **`api/index.py`**: WSGI serverless entry point exposing the Flask `app`.
+
+#### Deploy Steps
+
+1. **Push your code to GitHub** (already configured):
+   ```bash
+   git push origin main
+   ```
+
+2. **Import into Vercel**:
+   - Go to [vercel.com](https://vercel.com) and log in.
+   - Click **"Add New..." → "Project"**.
+   - Import your repository: **`Bishh-ui/Github_analyzer`**.
+
+3. **Configure Environment Variables**:
+   In the Vercel deployment wizard, expand **Environment Variables** and add:
+   - `GITHUB_TOKEN`: `ghp_YourPersonalAccessToken`
+   - `SECRET_KEY`: `any_random_secret_string` (generate with `python -c "import secrets; print(secrets.token_hex(24))"`)
+   - `DEBUG`: `False`
+
+4. **Deploy**:
+   - Click **Deploy**! Vercel will install packages from `requirements.txt` and launch your project in ~1-2 minutes.
+
+---
 
 ### Heroku
 

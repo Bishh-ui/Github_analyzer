@@ -18,7 +18,12 @@ CACHE_TIMEOUT = int(os.getenv('CACHE_TIMEOUT', '3600'))  # 1 hour
 MAX_CACHE_ITEMS = int(os.getenv('MAX_CACHE_ITEMS', '100'))
 
 # Database settings
-SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///github_analytics.db')
+if os.getenv('VERCEL'):
+    default_db = 'sqlite:////tmp/github_analytics.db'
+else:
+    default_db = 'sqlite:///github_analytics.db'
+
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', default_db)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Rate Limiting

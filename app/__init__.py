@@ -16,9 +16,13 @@ limiter = Limiter(key_func=get_remote_address)
 
 def create_app():
     """Application factory function"""
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    static_dir = os.path.join(os.path.dirname(app_dir), 'static')
+    template_dir = os.path.join(app_dir, 'templates')
+    
     app = Flask(__name__, 
-                static_folder='../static',
-                template_folder='templates')
+                static_folder=static_dir,
+                template_folder=template_dir)
     
     # Configuration
     app.config['DEBUG'] = config.DEBUG
