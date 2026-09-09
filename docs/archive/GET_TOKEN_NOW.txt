@@ -1,0 +1,120 @@
+================================================================================
+                    ⚠️  RATE LIMIT EXCEEDED - ACTION REQUIRED
+================================================================================
+
+PROBLEM: You've used all 60 free GitHub API requests for this hour.
+STATUS:  Rate limit resets in 57 minutes.
+IMPACT:  Application will buffer/hang until rate limit resets.
+
+================================================================================
+                        🔑 SOLUTION: ADD GITHUB TOKEN
+================================================================================
+
+This will give you 5,000 requests/hour instead of 60!
+
+STEP 1: GET YOUR GITHUB TOKEN (Takes 2 minutes)
+--------------------------------------------------------------------------------
+
+1. Open this URL in your browser:
+   👉 https://github.com/settings/tokens
+
+2. Click: "Generate new token" → "Tokens (classic)"
+
+3. Fill out the form:
+   - Note: "GitHub Analytics Pro"
+   - Expiration: 90 days (or "No expiration")
+
+4. Select these permissions (scopes):
+   ☑️ read:user
+   ☑️ public_repo
+   ☑️ read:org
+
+5. Scroll down and click: "Generate token"
+
+6. IMPORTANT: Copy the token immediately!
+   (It looks like: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+   You won't be able to see it again!
+
+STEP 2: ADD TOKEN TO .ENV FILE
+--------------------------------------------------------------------------------
+
+1. Open this file in Notepad:
+   c:\Users\Bishal\OneDrive\Desktop\Git_Hub_analy\.env
+
+2. Find this line:
+   GITHUB_TOKEN=your_github_token_here
+
+3. Replace with your actual token:
+   GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+4. Save the file (Ctrl+S)
+
+STEP 3: RESTART THE SERVER
+--------------------------------------------------------------------------------
+
+1. Go to the terminal where server is running
+
+2. Press Ctrl+C to stop
+
+3. Run: python run.py
+
+4. Server will restart with your token!
+
+================================================================================
+                              AFTER ADDING TOKEN
+================================================================================
+
+✅ Rate Limit: 5,000 requests/hour (instead of 60)
+✅ No more buffering
+✅ Fast analytics
+✅ All features work smoothly
+✅ Can analyze multiple users
+
+================================================================================
+                            TEMPORARY WORKAROUND
+================================================================================
+
+If you don't want to add a token right now:
+
+Option 1: Wait 57 minutes for rate limit to reset
+Option 2: Use a different IP address (mobile hotspot)
+Option 3: Try tomorrow (rate limit resets daily)
+
+But honestly, getting a token takes 2 minutes and solves this forever!
+
+================================================================================
+                                QUICK STEPS
+================================================================================
+
+1. 👉 https://github.com/settings/tokens
+2. Generate new token (classic)
+3. Select: read:user, public_repo, read:org
+4. Copy token
+5. Edit .env file
+6. Replace: GITHUB_TOKEN=your_token_here
+7. Save
+8. Restart: Ctrl+C then python run.py
+
+================================================================================
+                            WHY THIS HAPPENED
+================================================================================
+
+GitHub API without token: 60 requests/hour
+Your analysis tried to:
+- Fetch user profile
+- Get all 18 repositories
+- Get commit history for each repo
+- Get contributors for each repo
+- Calculate statistics
+
+This used all 60 requests quickly!
+
+With token: 5,000 requests/hour - More than enough!
+
+================================================================================
+
+STATUS: Waiting for you to add GitHub token...
+Next reset: 57 minutes from now
+Recommended: Add token (takes 2 minutes)
+
+================================================================================

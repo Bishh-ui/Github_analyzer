@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Hero & Search Section -->
+    <section class="hero-wrapper">
+        <div class="hero-pill-badge">
+            <i class="fas fa-sparkles"></i> Real-time Developer Analytics Engine
+        </div>
+        <h1 class="display-4 fw-extrabold mb-3">
+            Unleash GitHub Profile <span class="text-gradient">Intelligence</span>
+        </h1>
+        <p class="lead text-secondary mx-auto mb-4" style="max-width: 620px;">
+            Evaluate developer impact, consistency, programming versatility, and repository trends with precision scoring.
+        </p>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <form method="POST" action="/" class="search-card" id="search-form">
+                    <div class="input-group align-items-center">
+                        <span class="ps-3 text-secondary">
+                            <i class="fab fa-github fa-lg"></i>
+                        </span>
+                        <input type="text" 
+                               name="username" 
+                               class="form-control search-input" 
+                               placeholder="Enter any GitHub username (e.g. bishh-ui, octocat)..." 
+                               required
+                               autocomplete="off"
+                               id="username-input"
+                               value="{{ user_stats.user.login if user_stats else '' }}">
+                        <button type="submit" class="btn search-btn" id="search-submit-btn">
+                            <i class="fas fa-search me-1"></i> Analyze
+                        </button>
+                    </div>
+                    <div id="suggestions" class="suggestions-dropdown"></div>
+                </form>
+
+                <!-- Quick Discovery Chips -->
+                <div class="quick-chips-wrapper">
+                    <span class="text-muted small me-1">Quick Analyze:</span>
+                    <button type="button" class="suggestion-chip" onclick="quickSearch('bishh-ui')">
+                        <i class="fas fa-user-circle text-info"></i> bishh-ui
+                    </button>
+                    <button type="button" class="suggestion-chip" onclick="quickSearch('octocat')">
+                        <i class="fab fa-github text-warning"></i> octocat
+                    </button>
+                    <button type="button" class="suggestion-chip" onclick="quickSearch('torvalds')">
+                        <i class="fab fa-linux text-success"></i> torvalds
+                    </button>
+                    <button type="button" class="suggestion-chip" onclick="quickSearch('gvanrossum')">
+                        <i class="fab fa-python text-primary"></i> gvanrossum
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Error Banner -->
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show glass-card border-danger mt-4" role="alert">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-exclamation-triangle fa-lg text-danger"></i>
+            <div>
+                <strong>Query Error:</strong> {{ error }}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    {% if user_stats %}
+    <!-- Main Profile Section -->
+    <div class="glass-card mb-4 mt-4">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row g-4 align-items-start">
+                <!-- Left Sidebar: Avatar & Actions -->
+                <div class="col-lg-3 col-md-4 text-center">
+                    <div class="profile-avatar-wrapper mb-3">
+                        <img src="{{ user_stats.user.avatar_url }}" 
+                             alt="{{ user_stats.user.login }}" 
+                             class="profile-avatar-img">
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-2 mb-4">
+                        <a href="https://github.com/{{ user_stats.user.login }}" 
+                           target="_blank" 
+                           rel="noopener" 
+                           class="btn btn-outline-secondary export-btn">
+                            <i class="fab fa-github"></i> View GitHub Profile
+                        </a>
+                        <div class="btn-group w-100">
+                            <a href="/export/json/{{ user_stats.user.login }}" class="btn btn-outline-primary btn-sm export-btn">
+                                <i class="fas fa-file-code"></i> JSON
+                            </a>
+                            <a href="/export/csv/{{ user_stats.user.login }}" class="btn btn-outline-success btn-sm export-btn">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </a>
+                            <a href="/export/markdown/{{ user_stats.user.login }}" class="btn btn-outline-info btn-sm export-btn">
+                                <i class="fab fa-markdown"></i> MD
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- API Quota Widget -->
+                    <div class="glass-card p-3 text-start">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-secondary">Core API Quota</span>
+                            <span class="badge bg-success-subtle text-success">
+                                {{ user_stats.rate_limit.core.remaining }} left
+                            </span>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ (user_stats.rate_limit.core.remaining / user_stats.rate_limit.core.limit * 100)|round }}%">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                            <span>Limit: {{ user_stats.rate_limit.core.limit }}/hr</span>
+                            <span>Reset: {{ user_stats.rate_limit.core.reset_time }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Profile Information & Advanced Metrics -->
+                <div class="col-lg-9 col-md-8">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <div>
+                            <h2 class="profile-name-title mb-0">
+                                {{ user_stats.user.name or user_stats.user.login }}
+                            </h2>
+                            <span class="text-secondary font-mono">@{{ user_stats.user.login }}</span>
+                        </div>
+                        <a href="/compare" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="fas fa-balance-scale me-1"></i> Compare with Another
+                        </a>
+                    </div>
+
+                    {% if user_stats.user.bio %}
+                    <p class="profile-bio-box">{{ user_stats.user.bio }}</p>
+                    {% endif %}
+
+                    <!-- Meta Tags (Location, Company, Website) -->
+                    <div class="profile-meta-tags mb-4">
+                        {% if user_stats.user.location %}
+                        <div class="profile-meta-item">
+                            <i class="fas fa-map-marker-alt"></i> {{ user_stats.user.location }}
+                        </div>
+                        {% endif %}
+                        {% if user_stats.user.company %}
+                        <div class="profile-meta-item">
+                            <i class="fas fa-building"></i> {{ user_stats.user.company }}
+                        </div>
+                        {% endif %}
+                        {% if user_stats.user.blog %}
+                        <div class="profile-meta-item">
+                            <i class="fas fa-link"></i> 
+                            <a href="{{ user_stats.user.blog }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                {{ user_stats.user.blog }}
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="profile-meta-item">
+                            <i class="fas fa-calendar-alt"></i> Member for {{ user_stats.user.account_age_years }} years
+                        </div>
+                    </div>
+
+                    <!-- Statistics Pills -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <div class="stat-pill">
+                            <i class="fas fa-folder-open text-primary"></i>
+                            <span>{{ user_stats.stats.public_repos }}</span>
+                            <span class="text-muted">repos</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fas fa-star text-warning"></i>
+                            <span>{{ user_stats.stats.total_stars }}</span>
+                            <span class="text-muted">stars</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fas fa-code-branch text-info"></i>
+                            <span>{{ user_stats.stats.total_forks }}</span>
+                            <span class="text-muted">forks</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fas fa-users text-success"></i>
+                            <span>{{ user_stats.stats.followers }}</span>
+                            <span class="text-muted">followers</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fas fa-user-plus text-secondary"></i>
+                            <span>{{ user_stats.stats.following }}</span>
+                            <span class="text-muted">following</span>
+                        </div>
+                    </div>
+
+                    <!-- 4 Advanced Scorecards -->
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="score-card accent-purple">
+                                <div class="score-icon-badge">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="score-number metric-value">{{ user_stats.advanced_metrics.impact_score }}</div>
+                                <div class="score-title">Impact Score</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="score-card accent-emerald">
+                                <div class="score-icon-badge">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="score-number metric-value">{{ user_stats.advanced_metrics.consistency_score }}</div>
+                                <div class="score-title">Consistency</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="score-card accent-cyan">
+                                <div class="score-icon-badge">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div class="score-number metric-value">{{ user_stats.advanced_metrics.diversity_score }}</div>
+                                <div class="score-title">Diversity</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="score-card accent-amber">
+                                <div class="score-icon-badge">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <div class="score-number metric-value">{{ user_stats.trending_analysis.recently_active_count }}</div>
+                                <div class="score-title">Active Repos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Analytics Section -->
+    <div class="row g-4 mb-4">
+        <!-- Contribution Timeline -->
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header-custom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        <h5 class="mb-0">Contribution & Commit Timeline</h5>
+                    </div>
+                    <span class="text-muted small">Quarterly commits across public repositories</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="chart-container-responsive" style="height: 320px;">
+                        <canvas id="contributionTimeline"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language DNA Distribution -->
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header-custom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-code text-info"></i>
+                        <h5 class="mb-0">Programming Language Distribution</h5>
+                    </div>
+                    <span class="text-muted small">Repository & ecosystem breakdown</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <h6 class="text-secondary mb-3">By Repositories</h6>
+                            <div class="chart-container-responsive" style="height: 240px;">
+                                <canvas id="languageByRepos"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6 class="text-secondary mb-3">By Stars</h6>
+                            <div class="chart-container-responsive" style="height: 240px;">
+                                <canvas id="languageByStars"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6 class="text-secondary mb-3">By Commits</h6>
+                            <div class="chart-container-responsive" style="height: 240px;">
+                                <canvas id="languageByCommits"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Repositories & Collaboration Section -->
+    <div class="row g-4 mb-5">
+        <!-- Top Repositories Tabbed Card -->
+        <div class="col-lg-7">
+            <div class="glass-card h-100">
+                <div class="card-header-custom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-trophy text-warning"></i>
+                        <h5 class="mb-0">Top Repositories</h5>
+                    </div>
+                    <ul class="nav nav-pills nav-fill gap-1" id="repoTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-1 px-3 small" data-bs-toggle="pill" data-bs-target="#stars-tab">
+                                Stars
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 px-3 small" data-bs-toggle="pill" data-bs-target="#forks-tab">
+                                Forks
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 px-3 small" data-bs-toggle="pill" data-bs-target="#activity-tab">
+                                Activity
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4">
+                    <div class="tab-content" id="repoTabContent">
+                        <!-- Top by Stars -->
+                        <div class="tab-pane fade show active" id="stars-tab">
+                            {% for repo in user_stats.repos.top_repos_by_stars[:5] %}
+                            <div class="repo-item-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <a href="{{ repo.url }}" target="_blank" rel="noopener" class="repo-link">
+                                        <i class="fas fa-book-bookmark me-1 text-secondary"></i> {{ repo.name }}
+                                    </a>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                        <i class="fas fa-star"></i> {{ repo.stars }}
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-2 text-truncate">
+                                    {{ repo.description or 'No repository description provided.' }}
+                                </p>
+                                <div class="d-flex align-items-center gap-3 small text-muted">
+                                    {% if repo.language %}
+                                    <span><span class="lang-dot bg-primary me-1"></span> {{ repo.language }}</span>
+                                    {% endif %}
+                                    <span><i class="fas fa-code-fork me-1"></i> {{ repo.forks }}</span>
+                                    <span><i class="fas fa-chart-line me-1"></i> Score: {{ repo.activity_score }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">No repository data available.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Top by Forks -->
+                        <div class="tab-pane fade" id="forks-tab">
+                            {% for repo in user_stats.repos.top_repos_by_forks[:5] %}
+                            <div class="repo-item-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <a href="{{ repo.url }}" target="_blank" rel="noopener" class="repo-link">
+                                        <i class="fas fa-book-bookmark me-1 text-secondary"></i> {{ repo.name }}
+                                    </a>
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                        <i class="fas fa-code-fork"></i> {{ repo.forks }}
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-2 text-truncate">
+                                    {{ repo.description or 'No repository description provided.' }}
+                                </p>
+                                <div class="d-flex align-items-center gap-3 small text-muted">
+                                    {% if repo.language %}
+                                    <span><span class="lang-dot bg-info me-1"></span> {{ repo.language }}</span>
+                                    {% endif %}
+                                    <span><i class="fas fa-star me-1"></i> {{ repo.stars }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">No repository data available.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Top by Activity -->
+                        <div class="tab-pane fade" id="activity-tab">
+                            {% for repo in user_stats.repos.top_repos_by_activity[:5] %}
+                            <div class="repo-item-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <a href="{{ repo.url }}" target="_blank" rel="noopener" class="repo-link">
+                                        <i class="fas fa-book-bookmark me-1 text-secondary"></i> {{ repo.name }}
+                                    </a>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        Active: {{ repo.activity_score }}
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-2 text-truncate">
+                                    {{ repo.description or 'No repository description provided.' }}
+                                </p>
+                                <div class="d-flex align-items-center gap-3 small text-muted">
+                                    {% if repo.language %}
+                                    <span><span class="lang-dot bg-success me-1"></span> {{ repo.language }}</span>
+                                    {% endif %}
+                                    <span><i class="fas fa-clock me-1"></i> Updated {{ repo.days_since_update }}d ago</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">No repository data available.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collaboration & Quality Cards -->
+        <div class="col-lg-5">
+            <div class="d-flex flex-column gap-4 h-100">
+                <!-- Collaboration Metrics -->
+                <div class="glass-card">
+                    <div class="card-header-custom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-network-wired text-success"></i>
+                            <h5 class="mb-0">Collaboration Dynamics</h5>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Follower/Following Ratio</span>
+                            <span class="quality-value">{{ user_stats.collaboration_metrics.follower_following_ratio }}</span>
+                        </div>
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Social Reach Score</span>
+                            <span class="quality-value">{{ user_stats.collaboration_metrics.social_reach_score }}</span>
+                        </div>
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Avg Contributors / Repo</span>
+                            <span class="quality-value">{{ user_stats.collaboration_metrics.avg_contributors_per_repo }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Quality Indicators -->
+                <div class="glass-card flex-grow-1">
+                    <div class="card-header-custom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-certificate text-warning"></i>
+                            <h5 class="mb-0">Code Quality Indicators</h5>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Documented Repositories</span>
+                            <span class="quality-value">{{ user_stats.code_quality_metrics.repos_with_description }}</span>
+                        </div>
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Repositories with Topics</span>
+                            <span class="quality-value">{{ user_stats.code_quality_metrics.repos_with_topics }}</span>
+                        </div>
+                        <div class="quality-metric-box">
+                            <span class="quality-label">Documentation Health Score</span>
+                            <span class="quality-value text-success">{{ user_stats.code_quality_metrics.avg_documentation_score }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded User Stats JSON for Client Charts -->
+    <script id="github-data" type="application/json">
+        {{ user_stats | tojson | safe }}
+    </script>
+    {% else %}
+    <!-- Landing Page Spotlight Cards (When no user has been searched yet) -->
+    <section class="mt-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">What GitHub Analytics Pro Delivers</h3>
+            <p class="text-secondary">Explore key dimensions engineered to reveal true developer capabilities.</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="glass-card p-4 text-center h-100">
+                    <div class="score-icon-badge mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem; background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Impact & Consistency</h5>
+                    <p class="text-secondary small mb-0">
+                        Multi-dimensional impact scoring synthesizes stars, fork ratios, commit recency, and follower engagement into a cohesive score.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="glass-card p-4 text-center h-100">
+                    <div class="score-icon-badge mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem; background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+                        <i class="fas fa-dna"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Language DNA & Trends</h5>
+                    <p class="text-secondary small mb-0">
+                        Inspect language versatility across repositories, stars, and historical commit timelines to discover stack specialization.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="glass-card p-4 text-center h-100">
+                    <div class="score-icon-badge mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem; background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Multi-User Comparison</h5>
+                    <p class="text-secondary small mb-0">
+                        Compare up to 5 engineers side-by-side with radar charts, social reach metrics, and repository volume rankings.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function quickSearch(username) {
+    const input = document.getElementById('username-input');
+    if (input) {
+        input.value = username;
+        document.getElementById('search-form').submit();
+    }
+}
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/enhanced.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

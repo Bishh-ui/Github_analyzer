@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Users - GitHub Analytics Pro{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <div class="hero-pill-badge mb-2">
+            <i class="fas fa-balance-scale"></i> Multi-Profile Intelligence
+        </div>
+        <h1 class="display-5 fw-extrabold mb-2">
+            Compare GitHub <span class="text-gradient">Developers</span>
+        </h1>
+        <p class="lead text-secondary mx-auto" style="max-width: 580px;">
+            Benchmark up to 5 developers side by side across repository output, social reach, impact scores, and tech stacks.
+        </p>
+    </div>
+
+    <!-- Comparison Form Card -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 col-md-10">
+            <div class="glass-card p-4">
+                <form method="POST" action="/">
+                    <input type="hidden" name="mode" value="compare">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">GitHub Usernames (2 to 5)</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-transparent border-end-0 text-secondary">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <input type="text" 
+                                   name="usernames" 
+                                   id="compare-usernames-input"
+                                   class="form-control search-input border-start-0" 
+                                   placeholder="e.g. bishh-ui, octocat, torvalds"
+                                   value="{% if comparisons %}{{ comparisons|map(attribute='username')|join(', ') }}{% endif %}"
+                                   required>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted">Enter usernames separated by commas (max 5)</small>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" 
+                                        onclick="document.getElementById('compare-usernames-input').value = 'bishh-ui, octocat'">
+                                    Try: bishh-ui vs octocat
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" 
+                                        onclick="document.getElementById('compare-usernames-input').value = 'torvalds, gvanrossum'">
+                                    Try: torvalds vs gvanrossum
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn search-btn w-100 py-2">
+                        <i class="fas fa-chart-simple me-2"></i> Launch Comparison Analysis
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if comparisons %}
+    <!-- Comparison Results -->
+    <div class="comparison-results">
+        <!-- Overview Table -->
+        <div class="glass-card mb-4">
+            <div class="card-header-custom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-table-columns text-primary"></i>
+                    <h5 class="mb-0">Benchmark Matrix</h5>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                    {{ comparisons|length }} Profiles
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="color: var(--text-primary);">
+                        <thead style="background: var(--bg-surface-elevated); border-bottom: 1px solid var(--border-subtle);">
+                            <tr>
+                                <th class="ps-4">Developer</th>
+                                <th>Public Repos</th>
+                                <th>Total Stars</th>
+                                <th>Total Forks</th>
+                                <th>Followers</th>
+                                <th>Impact Score</th>
+                                <th class="pe-4">Consistency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comp in comparisons %}
+                            <tr style="border-bottom: 1px solid var(--border-subtle);">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="{{ comp.stats.user.avatar_url }}" 
+                                             alt="{{ comp.username }}"
+                                             class="rounded-3 border border-secondary"
+                                             style="width: 44px; height: 44px; object-fit: cover;">
+                                        <div>
+                                            <a href="/?username={{ comp.username }}" class="fw-bold text-decoration-none" style="color: var(--text-primary);">
+                                                {{ comp.stats.user.name or comp.username }}
+                                            </a>
+                                            <div class="small text-muted font-mono">@{{ comp.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="font-mono fw-bold">{{ comp.stats.stats.public_repos }}</span></td>
+                                <td><span class="font-mono text-warning fw-bold"><i class="fas fa-star small"></i> {{ comp.stats.stats.total_stars }}</span></td>
+                                <td><span class="font-mono text-info fw-bold">{{ comp.stats.stats.total_forks }}</span></td>
+                                <td><span class="font-mono text-success fw-bold">{{ comp.stats.stats.followers }}</span></td>
+                                <td>
+                                    <span class="badge bg-primary px-2 py-1 font-mono">
+                                        {{ comp.stats.advanced_metrics.impact_score }}
+                                    </span>
+                                </td>
+                                <td class="pe-4">
+                                    <span class="badge bg-success px-2 py-1 font-mono">
+                                        {{ comp.stats.advanced_metrics.consistency_score }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Comparison Charts Grid -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-folder-tree text-primary me-2"></i> Repository Output</h6>
+                    </div>
+                    <div class="card-body p-4" style="height: 320px;">
+                        <canvas id="repoComparison"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-users-rays text-info me-2"></i> Social Reach</h6>
+                    </div>
+                    <div class="card-body p-4" style="height: 320px;">
+                        <canvas id="socialComparison"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-radar text-warning me-2"></i> Advanced Metrics</h6>
+                    </div>
+                    <div class="card-body p-4" style="height: 320px;">
+                        <canvas id="metricsComparison"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-cubes-stacked text-success me-2"></i> Language Versatility</h6>
+                    </div>
+                    <div class="card-body p-4" style="height: 320px;">
+                        <canvas id="languageComparison"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Profile Quickcards -->
+        <div class="row g-4">
+            {% for comp in comparisons %}
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img src="{{ comp.stats.user.avatar_url }}" 
+                                 alt="{{ comp.username }}"
+                                 class="rounded-3"
+                                 style="width: 52px; height: 52px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0 fw-bold">{{ comp.stats.user.name or comp.username }}</h5>
+                                <span class="text-secondary font-mono small">@{{ comp.username }}</span>
+                            </div>
+                        </div>
+
+                        <h6 class="text-secondary small fw-bold text-uppercase mb-2">Primary Languages</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for lang, count in comp.stats.languages.by_repos.items() %}
+                            {% if loop.index <= 5 %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                {{ lang }} ({{ count }})
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <h6 class="text-secondary small fw-bold text-uppercase mb-2">Top Repositories</h6>
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            {% for repo in comp.stats.repos.top_repos_by_stars[:3] %}
+                            <div class="p-2 rounded" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{{ repo.url }}" target="_blank" rel="noopener" class="fw-bold small text-decoration-none" style="color: var(--text-primary);">
+                                        {{ repo.name }}
+                                    </a>
+                                    <span class="small text-warning"><i class="fas fa-star"></i> {{ repo.stars }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <a href="/?username={{ comp.username }}" class="btn btn-outline-primary btn-sm rounded-pill w-100 mt-2">
+                        Inspect Full Profile <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Data Injection for Chart.js -->
+    <script id="comparison-data" type="application/json">
+        {{ comparisons | tojson | safe }}
+    </script>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+{% endblock %}
