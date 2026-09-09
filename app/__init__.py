@@ -56,8 +56,11 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(export_bp, url_prefix='/export')
     
-    # Create database tables
-    with app.app_context():
-        db.create_all()
+    # Create database tables safely
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception as db_err:
+        print(f"Warning: Database initialization skipped: {db_err}")
     
     return app
